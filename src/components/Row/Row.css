@@ -1,0 +1,35 @@
+.rowContainer {
+	display: flex;
+}
+
+.row {
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+}
+
+.rowContainer:hover {
+	background-color: #403f3f;
+	width: 53em;
+}
+
+#inactiveIndicator {
+	margin-left: 1.5em;
+}
+
+#coloredCircle {
+	display: inline-block;
+	margin-left: 5px;
+	margin-right: 13px;
+	margin-bottom: -2px;
+	border-radius: 50%;
+	background-color: #618b61;
+	border-width: 0.5px;
+	height: 15px;
+	width: 15px;
+}
+
+.activeContainer {
+	display: flex;
+	align-items: center;
+}
