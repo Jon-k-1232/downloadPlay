@@ -6,130 +6,64 @@ import Checkbox from './components/CheckBox/Checkbox';
 
 export default function App() {
 	const [downloadableItems, setDownloadableItems] = useState([]);
-	const [selectAllObject, setSelectAllObject] = useState([]);
-	const [selectedCount, setSelectedCount] = useState(0);
-	const [selected, setSelected] = useState([]);
-	const [selectedHistory, setSelectedHistory] = useState([]);
+	const [selectAll, setSelectAll] = useState(false);
+	const [selected, setSelectedItems] = useState([]);
+	const [list, setList] = useState([]);
 
 	useEffect(() => {
-		// Assigning intial values
-		inputData.forEach((item, i) => {
-			item.id = i;
-			item.changeColor = false;
-			item.isChecked = false;
-		});
-
-		// Creates and object for select all
-		setSelectAllObject({
-			name: 'Select_All_Button',
-			id: inputData.length,
-			changeColor: false,
-			isChecked: false,
-		});
-
-		// Createing a list of items that are available for download
-		setDownloadableItems(inputData.filter(item => item.status === 'available'));
-	}, []);
+		setList(inputData);
+		setDownloadableItems(list.filter(item => item.status === 'available'));
+	}, [list]);
 
 	/**
-	 * Orchestrator of button action
-	 * @param {*} e synthetic click
+	 * Selects all onClick and calls for rowColorChange()
+	 * @param {*} e takes in synthetic click event
 	 */
-	const checkboxOnClickHandler = e => {
-		const id = parseInt(e.target.value);
-		const selectAllBoxId = selectAllObject.id;
+	const handleSelectAll = e => {
+		setSelectAll(!selectAll);
+		setSelectedItems(list.map(li => li.id));
 
-		toggleChecked(e, id);
-		updateSelectedCount(e, id, selectAllBoxId);
-		changeRowColor(e, id, selectAllBoxId);
-		updateSelectAll(e, id, selectAllBoxId);
-	};
+		changeRowColor(e);
 
-	/**
-	 * Updates object with a Boolean in isChecked key
-	 * @param {*} e Orgional synthetic click
-	 * @param {*} id const for item from e.target.value
-	 */
-	const toggleChecked = (e, id) => {
-		inputData.forEach(item => {
-			if (item.id === id) {
-				item.isChecked = e.target.checked;
-			}
-		});
-	};
-
-	/**
-	 * Creates an array of active id's and count
-	 * @param {*} e Orgional synthetic click
-	 * @param {*} id const for item from e.target.value
-	 * @param {*} selectAllBoxId Id of length of inputData.
-	 */
-	const updateSelectedCount = (e, id, selectAllBoxId) => {
-		const checked = e.target.checked;
-
-		if (checked && id !== selectAllBoxId) {
-			setSelected([...selected, id]);
-			setSelectedCount(selectedCount + 1);
-		} else if (!checked && id !== selectAllBoxId) {
-			const removeItem = selected.indexOf(id);
-			selected.splice(removeItem, 1);
-			setSelectedCount(selectedCount - 1);
+		if (selectAll) {
+			setSelectedItems([]);
 		}
 	};
 
 	/**
-	 * Changes color of row
-	 * @param {*} e Orgional synthetic click
-	 * @param {*} id const for item from e.target.value
-	 * @param {*} selectAllBoxId Id of length of inputData.
+	 * Selects correct checkbox onClick and calls for rowColorChange()
+	 * @param {*} e takes in synthetic click event
 	 */
-	const changeRowColor = (e, id, selectAllBoxId) => {
-		if (id !== selectAllBoxId) {
-			inputData.forEach(item => {
+	const handleClick = e => {
+		const { checked } = e.target;
+		const id = parseInt(e.target.id);
+
+		setSelectedItems([...selected, id]);
+
+		changeRowColor(e);
+
+		if (!checked) {
+			setSelectedItems(selected.filter(item => item !== id));
+		}
+	};
+
+	/**
+	 * Updates row color change for row click and select all click
+	 * @param {*} e takes in synthetic click event
+	 */
+	const changeRowColor = e => {
+		const { checked } = e.target;
+		const id = parseInt(e.target.id);
+
+		if (id === list.length) {
+			list.forEach(item => (item.changeColor = checked));
+		} else {
+			list.forEach(item => {
 				if (item.id === id) {
-					item.changeColor = e.target.checked;
+					item.changeColor = checked;
 				}
 				return item;
 			});
-		}
-	};
-
-	/**
-	 * Select all check boxes.
-	 * @param {*} e Orgional synthetic click
-	 * @param {*} id const for item from e.target.value
-	 * @param {*} selectAllBoxId Id of length of inputData.
-	 */
-	const updateSelectAll = (e, id, selectAllBoxId) => {
-		const checked = e.target.checked;
-
-		const objectUpdate = () => {
-			inputData.forEach(item => {
-				item.changeColor = checked;
-				item.isChecked = checked;
-			});
-		};
-
-		// If Select All is selected
-		if (checked && id === selectAllBoxId) {
-			setSelectedCount(inputData.length);
-			setSelected(inputData.map((item, i) => i));
-			setSelectedHistory(selected);
-			objectUpdate();
-
-			// Conditions of when Select All is not selected
-		} else if (!checked && selectedHistory.length === 0) {
-			setSelected([]);
-			setSelectedCount(0);
-			objectUpdate();
-		} else if (!checked && selectedHistory.length >= 1) {
-			setSelected(selectedHistory);
-			setSelectedCount(selectedHistory.length);
-
-			const deHighlight = inputData.filter(item =>
-				selectedHistory.find(ids => item.id !== ids),
-			);
-			deHighlight.forEach(item => (item.changeColor = checked));
 		}
 	};
 
@@ -151,15 +85,17 @@ export default function App() {
 		<div className='App'>
 			<div className='menuContainer'>
 				<header>
-					{/* selectAllBoxId in header has id of 5 */}
 					<Checkbox
-						onClickCallback={e => checkboxOnClickHandler(e)}
-						item={selectAllObject}
+						type='checkbox'
+						name='selectAll'
+						id={list.length}
+						handleClick={handleSelectAll}
+						isChecked={selectAll}
 					/>
-					{selectedCount === 0 ? (
+					{selected === 0 ? (
 						<p>None Selected</p>
 					) : (
-						<p>Selected {selectedCount}</p>
+						<p>Selected {selected.length}</p>
 					)}
 					<button onClick={downloadHandler}>Download Selected</button>
 				</header>
@@ -171,16 +107,19 @@ export default function App() {
 				</div>
 				<div className='lowerDiv'>
 					{/* If no data, component will not render */}
-					{inputData &&
-						inputData.map((fileItem, i) => (
-							<div className='rowContainer' key={i}>
-								<Checkbox
-									onClickCallback={e => checkboxOnClickHandler(e)}
-									item={fileItem}
-								/>
-								<Row {...fileItem} />
-							</div>
-						))}
+					{list.map((fileItem, i) => (
+						<div className='rowContainer' key={i}>
+							<Checkbox
+								key={i}
+								type='checkbox'
+								name={fileItem.name}
+								id={fileItem.id}
+								handleClick={handleClick}
+								isChecked={selected.includes(i)}
+							/>
+							<Row {...fileItem} />
+						</div>
+					))}
 				</div>
 			</div>
 		</div>
