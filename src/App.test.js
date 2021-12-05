@@ -1,8 +1,6 @@
-import { render, screen } from '@testing-library/react';
-import App from './App';
+import inputData from './ArrayData';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+it('Objects intialize to false', () => {
+	const falseArray = [false, false, false, false, false];
+	expect(inputData.map(item => item.changeColor)).toEqual(falseArray);
 });
